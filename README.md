@@ -2,22 +2,31 @@
 
 ![banner](banner.svg)
 
-Prevents your Mac from sleeping and simulates mouse activity at a configurable interval. Useful for keeping sessions alive (SSH, meetings, CI dashboards, etc.) when you need to step away.
+Prevents your computer from sleeping and simulates mouse activity at a configurable interval. Useful for keeping sessions alive (SSH, meetings, CI dashboards, etc.) when you need to step away. Works on **macOS** and **Windows**.
 
 ## How it works
 
+**macOS**
+
 - Runs `caffeinate` in the background to block display and system sleep.
-- Every N seconds, moves the mouse cursor one pixel and back using macOS CoreGraphics — enough to register as user activity without visibly moving the pointer.
-- Logs a timestamp each time activity is simulated.
-- Cleans up `caffeinate` automatically when stopped.
+- Every N seconds, moves the mouse cursor one pixel and back using CoreGraphics — enough to register as user activity without visibly moving the pointer.
+
+**Windows**
+
+- Calls `SetThreadExecutionState` so the system and display stay available while the script runs.
+- Every N seconds, sends a tiny relative mouse move via `SendInput` and moves it back.
+
+On both systems, each simulated activity is logged with a timestamp, and sleep prevention is cleared when you stop the script.
 
 ## Requirements
 
-- macOS
-- Python 3 (pre-installed on modern macOS)
-- No third-party dependencies
+- **macOS** or **Windows** (64-bit)
+- **Python 3** (pre-installed on modern macOS; install from [python.org](https://www.python.org/downloads/) on Windows if needed)
+- No third-party Python packages
 
 ## Usage
+
+**macOS or Git Bash (same arguments as before)**
 
 ```bash
 # Make executable (first time only)
@@ -26,11 +35,29 @@ chmod +x keep_active.sh
 # Run with default interval (60 seconds)
 ./keep_active.sh
 
-# Run with a custom interval (e.g., every 30 seconds)
+# Custom interval (e.g. every 30 seconds)
 ./keep_active.sh 30
 ```
 
-Press `Ctrl+C` to stop. The script will kill the background `caffeinate` process and exit cleanly.
+**Any platform (recommended on Windows)**
+
+```bash
+python3 keep_active.py      # default 60s interval
+python3 keep_active.py 30   # every 30 seconds
+```
+
+On Windows, `python` or `py` may be the right command depending on your install, for example:
+
+```text
+python keep_active.py 60
+```
+
+Press `Ctrl+C` to stop. Cleanup runs automatically (stops `caffeinate` on macOS, clears execution state on Windows).
+
+## Notes
+
+- **WSL**: This targets the desktop OS. To keep the **Windows** host awake, run the script in Windows (Command Prompt, PowerShell, or Terminal), not only inside WSL.
+- **Security software**: Simulated input can trigger warnings from antivirus or endpoint protection on some corporate machines.
 
 ## Example output
 
